@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<!--
+    ╔══════════════════════════════════════════════════════════╗
+    ║  ROSSCORP INDUSTRIES — PUBLIC INTERFACE.                 ║
+    ║  CLEARANCE LEVEL: PUBLIC                                 ║
+    ║  UNAUTHORIZED SUBSYSTEM ACCESS WILL BE LOGGED            ║
+    ╚══════════════════════════════════════════════════════════╝
+-->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROSSCORP</title>
+    <meta name="description" content="ROSSCORP SOFTWARE FOR WHAT COMES NEXT">
+    <meta property="og:title" content="ROSSCORP">
+    <meta property="og:description" content="SOFTWARE FOR WHAT COMES NEXT">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rosscorp.net">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect fill=%27%230a0a0a%27 width=%27100%27 height=%27100%27/%3E%3Ctext fill=%27%23c4870d%27 font-family=%27monospace%27 font-size=%2726%27 font-weight=%27bold%27 x=%2750%27 y=%2744%27 text-anchor=%27middle%27%3EROSS%3C/text%3E%3Ctext fill=%27%23c4870d%27 font-family=%27monospace%27 font-size=%2726%27 font-weight=%27bold%27 x=%2750%27 y=%2770%27 text-anchor=%27middle%27%3ECORP%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        /* ══════════════════════════════════════════════════
+           ROOT VARIABLES
+           ══════════════════════════════════════════════════ */
+        :root {
+            --bg-deep: #050505;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #0e0e0e;
+            --bg-card: #0c0c0c;
+            --bg-card-hover: #111111;
+            --text-primary: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --text-dim: #777777;
+            --amber: #c4870d;
+            --amber-glow: #d4a017;
+            --amber-dim: #6b4f0a;
+            --amber-faint: rgba(196, 135, 13, 0.08);
+            --green: #2d8a4e;
+            --green-text: #4aba6a;
+            --yellow: #8a7a2d;
+            --yellow-text: #c4b040;
+            --red: #8a2d2d;
+            --red-text: #c04040;
+            --border: #1a1a1a;
+            --border-hover: #2a2a2a;
+            --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+            --container: 1080px;
+            --nav-height: 56px;
+        }
+
+        /* ══════════════════════════════════════════════════
+           RESET & BASE
+           ══════════════════════════════════════════════════ */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: calc(var(--nav-height) + 1rem);
+        }
+
+        body {
+            font-family: var(--font-mono);
+            background:
+                radial-gradient(ellipse at 15% 50%, rgba(196, 135, 13, 0.025) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 20%, rgba(196, 135, 13, 0.015) 0%, transparent 40%),
+                var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-size: 18px;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--amber);
+            color: var(--bg-deep);
+        }
+
+        a {
+            color: var(--amber);
+            text-decoration: none;
+            transition: color 0.2s, text-shadow 0.2s;
+        }
+
+        a:hover {
+            color: var(--amber-glow);
+            text-shadow: 0 0 8px rgba(212, 160, 23, 0.3);
+        }
+
+        /* ══════════════════════════════════════════════════
+           ATMOSPHERIC OVERLAYS
+           ══════════════════════════════════════════════════ */
+
+        /* Scanlines */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.06) 2px,
+                    rgba(0, 0, 0, 0.06) 4px);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Vignette */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center,
+                    transparent 50%,
+                    rgba(0, 0, 0, 0.5) 100%);
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        /* Subtle grid */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ══════════════════════════════════════════════════
+           NAVIGATION
+           ══════════════════════════════════════════════════ */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .nav-logo {
+            display: block;
+            color: var(--text-primary);
+            font-size: 14px;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            font-size: 14px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--amber);
+            text-shadow: none;
+        }
+
+        /* ══════════════════════════════════════════════════
+           LAYOUT
+           ══════════════════════════════════════════════════ */
+        .container {
+            max-width: var(--container);
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        section {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ══════════════════════════════════════════════════
+           SECTION HEADERS
+           ══════════════════════════════════════════════════ */
+        .section-header {
+            margin-bottom: 3rem;
+        }
+
+        .section-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 0.2em;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: normal;
+            letter-spacing: 0.25em;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, var(--border), transparent);
+        }
+
+        .section-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* ══════════════════════════════════════════════════
+           HERO
+           ══════════════════════════════════════════════════ */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding-top: var(--nav-height);
+            position: relative;
+        }
+
+        .hero-frame {
+            position: relative;
+            padding: 3rem 4rem;
+        }
+
+        /* Corner brackets */
+        .hero-frame::before,
+        .hero-frame::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-color: var(--amber-dim);
+            border-style: solid;
+        }
+
+        .hero-frame::before {
+            top: 0;
+            left: 0;
+            border-width: 1px 0 0 1px;
+        }
+
+        .hero-frame::after {
+            bottom: 0;
+            right: 0;
+            border-width: 0 1px 1px 0;
+        }
+
+        .hero-corner-tr,
+        .hero-corner-bl {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-color: var(--amber-dim);
+            border-style: solid;
+        }
+
+        .hero-corner-tr {
+            top: 0;
+            right: 0;
+            border-width: 1px 1px 0 0;
+        }
+
+        .hero-corner-bl {
+            bottom: 0;
+            left: 0;
+            border-width: 0 0 1px 1px;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 10vw, 7rem);
+            font-weight: normal;
+            letter-spacing: 0.3em;
+            padding-left: 0.3em;
+            color: var(--text-primary);
+            line-height: 1.1;
+            animation: textReveal 0.8s ease-out;
+        }
+
+        .hero-scroll {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-dim);
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            animation: bob 2.5s ease-in-out infinite, textReveal 0.8s ease-out 0.8s both;
+        }
+
+        .hero-scroll-arrow {
+            font-size: 16px;
+        }
+
+        /* ══════════════════════════════════════════════════
+           SECTION DIVIDER
+           ══════════════════════════════════════════════════ */
+        .divider {
+            text-align: center;
+            padding: 1rem 0;
+            color: var(--text-dim);
+            font-size: 12px;
+            letter-spacing: 0.5em;
+            overflow: hidden;
+        }
+
+        .divider-line {
+            display: block;
+            color: var(--border);
+            letter-spacing: 0.1em;
+            font-size: 10px;
+            overflow: hidden;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        /* ══════════════════════════════════════════════════
+           PRODUCT CARDS
+           ══════════════════════════════════════════════════ */
+        .products {
+            padding: 6rem 0;
+        }
+
+        .products-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .product-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-top: 2px solid var(--amber-dim);
+            padding: 0;
+            transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .product-card:hover {
+            border-color: var(--border-hover);
+            border-top-color: var(--amber);
+            background: var(--bg-card-hover);
+            box-shadow: 0 0 30px rgba(196, 135, 13, 0.04);
+        }
+
+        .product-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .product-flag {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 13px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .flag-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .flag-dot.green {
+            background: var(--green-text);
+            box-shadow: 0 0 6px rgba(74, 186, 106, 0.4);
+        }
+
+        .flag-dot.yellow {
+            background: var(--yellow-text);
+            box-shadow: 0 0 6px rgba(196, 176, 64, 0.4);
+        }
+
+        .flag-dot.red {
+            background: var(--red-text);
+            box-shadow: 0 0 6px rgba(192, 64, 64, 0.4);
+        }
+
+        .flag-text.green {
+            color: var(--green-text);
+        }
+
+        .flag-text.yellow {
+            color: var(--yellow-text);
+        }
+
+        .flag-text.red {
+            color: var(--red-text);
+        }
+
+        .flag-sep {
+            color: var(--border-hover);
+            font-size: 10px;
+        }
+
+        .product-card-body {
+            padding: 1.5rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-name {
+            font-size: 1.6rem;
+            letter-spacing: 0.15em;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .product-desc {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .product-date {
+            font-size: 12px;
+            letter-spacing: 0.15em;
+            color: var(--text-dim);
+            white-space: nowrap;
+            padding-top: 0.4rem;
+        }
+
+        .product-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 1.25rem;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-dim);
+            letter-spacing: 0.08em;
+        }
+
+        /* ══════════════════════════════════════════════════
+           TEAM
+           ══════════════════════════════════════════════════ */
+        .team {
+            padding: 6rem 0;
+        }
+
+        .team-body {
+            max-width: 720px;
+            font-size: 18px;
+            color: var(--text-secondary);
+            line-height: 1.9;
+        }
+
+        .team-body p+p {
+            margin-top: 1.5rem;
+            color: var(--text-dim);
+            font-size: 15px;
+        }
+
+        /* ══════════════════════════════════════════════════
+           FOOTER
+           ══════════════════════════════════════════════════ */
+        footer {
+            position: relative;
+            z-index: 2;
+            border-top: 1px solid var(--border);
+            padding: 3rem 0;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: var(--container);
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .footer-motto {
+            font-size: 15px;
+            color: var(--text-secondary);
+            letter-spacing: 0.3em;
+            margin-bottom: 1rem;
+        }
+
+        .footer-copy {
+            font-size: 14px;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+        }
+
+        .footer-copy a {
+            color: var(--text-dim);
+        }
+
+        .footer-copy a:hover {
+            color: var(--amber-dim);
+        }
+
+        /* ══════════════════════════════════════════════════
+           ANIMATIONS
+           ══════════════════════════════════════════════════ */
+        @keyframes textReveal {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        @keyframes bob {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(6px);
+            }
+        }
+
+        @keyframes flicker {
+
+            0%,
+            95%,
+            100% {
+                opacity: 1;
+            }
+
+            96% {
+                opacity: 0.92;
+            }
+
+            97% {
+                opacity: 0.97;
+            }
+
+            98% {
+                opacity: 0.94;
+            }
+        }
+
+        /* Scroll reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Staggered children */
+        .reveal-stagger>.reveal:nth-child(1) {
+            transition-delay: 0s;
+        }
+
+        .reveal-stagger>.reveal:nth-child(2) {
+            transition-delay: 0.1s;
+        }
+
+        .reveal-stagger>.reveal:nth-child(3) {
+            transition-delay: 0.2s;
+        }
+
+        /* CRT flicker on whole page — very subtle, very rare */
+        body {
+            animation: flicker 8s ease-in-out infinite;
+        }
+
+        /* ══════════════════════════════════════════════════
+           RESPONSIVE
+           ══════════════════════════════════════════════════ */
+        @media (max-width: 640px) {
+            .product-card-body {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            :root {
+                --nav-height: 48px;
+            }
+
+            body {
+                font-size: 13px;
+            }
+
+            nav {
+                padding: 0 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .hero-frame {
+                padding: 2rem 1.5rem;
+            }
+
+            .hero-frame::before,
+            .hero-frame::after,
+            .hero-corner-tr,
+            .hero-corner-bl {
+                width: 20px;
+                height: 20px;
+            }
+
+            .hero-scroll {
+                display: none;
+            }
+
+            .products,
+            .team {
+                padding: 4rem 0;
+            }
+
+            .section-title {
+                font-size: 1rem;
+            }
+
+            .container {
+                padding: 0 1.25rem;
+            }
+        }
+
+        /* ══════════════════════════════════════════════════
+           REDUCED MOTION
+           ══════════════════════════════════════════════════ */
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none;
+            }
+
+            html {
+                scroll-behavior: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Atmospheric grid -->
+    <div class="grid-overlay" aria-hidden="true"></div>
+
+    <!-- ═══ NAVIGATION ═══ -->
+    <nav>
+        <a href="#" class="nav-logo">ROSS<br>CORP</a>
+        <ul class="nav-links">
+            <li><a href="#products">PRODUCTS</a></li>
+            <li><a href="#team">TEAM</a></li>
+        </ul>
+    </nav>
+
+    <!-- ═══ HERO ═══ -->
+    <section class="hero">
+        <div class="hero-frame">
+            <div class="hero-corner-tr"></div>
+            <div class="hero-corner-bl"></div>
+            <h1 class="hero-title">ROSS<br>CORP</h1>
+        </div>
+        <a href="#products" class="hero-scroll" aria-label="Scroll to content">
+            <span class="hero-scroll-arrow">&#9663;</span>
+        </a>
+    </section>
+
+    <!-- ═══ DIVIDER ═══ -->
+    <div class="divider container" aria-hidden="true">
+        <span class="divider-line">════════════════════════════════════════════════════════════════════════════</span>
+    </div>
+
+    <!-- ═══ PRODUCTS / DIVISION ASSETS ═══ -->
+    <section class="products" id="products">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2 class="section-title">PRODUCTS</h2>
+                <p class="section-subtitle">Systems built by ROSSCORP</p>
+            </div>
+            <div class="products-grid reveal-stagger">
+
+                <div class="product-card reveal">
+                    <div class="product-card-header">
+                        <span class="product-flag"><span class="flag-dot green"></span> <span
+                                class="flag-text green">EXTERNAL</span></span>
+                        <span class="flag-sep">/</span>
+                        <span class="product-flag"><span class="flag-dot yellow"></span> <span
+                                class="flag-text yellow">IN DEVELOPMENT</span></span>
+                    </div>
+                    <div class="product-card-body">
+                        <div class="product-info">
+                            <h3 class="product-name">ROSSLIB</h3>
+                            <p class="product-desc">The most advanced organization system for books available.</p>
+                        </div>
+                        <div class="product-date">RELEASING Q1 2026</div>
+                    </div>
+                </div>
+
+                <div class="product-card reveal">
+                    <div class="product-card-header">
+                        <span class="product-flag"><span class="flag-dot red"></span> <span
+                                class="flag-text red">INTERNAL</span></span>
+                        <span class="flag-sep">/</span>
+                        <span class="product-flag"><span class="flag-dot green"></span> <span
+                                class="flag-text green">ACTIVE</span></span>
+                    </div>
+                    <div class="product-card-body">
+                        <div class="product-info">
+                            <h3 class="product-name">NEPHS</h3>
+                            <p class="product-desc">Expendable worker agents for software engineering and
+                                platform maintenance.</p>
+                        </div>
+                        <div class="product-date">RELEASING Q1 2026</div>
+                    </div>
+                </div>
+
+                <div class="product-card reveal">
+                    <div class="product-card-header">
+                        <span class="product-flag"><span class="flag-dot red"></span> <span
+                                class="flag-text red">INTERNAL</span></span>
+                        <span class="flag-sep">/</span>
+                        <span class="product-flag"><span class="flag-dot green"></span> <span
+                                class="flag-text green">ACTIVE</span></span>
+                    </div>
+                    <div class="product-card-body">
+                        <div class="product-info">
+                            <h3 class="product-name">UNCHESTRATOR</h3>
+                            <p class="product-desc">A scheduler for invoking Neph swarms. Wield dozens of workers in
+                                harmony.
+                            </p>
+                        </div>
+                        <div class="product-date">RELEASING Q1 2026</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ DIVIDER ═══ -->
+    <div class="divider container" aria-hidden="true">
+        <span class="divider-line">════════════════════════════════════════════════════════════════════════════</span>
+    </div>
+
+    <!-- ═══ TEAM ═══ -->
+    <section class="team" id="team">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2 class="section-title">THE TEAM</h2>
+            </div>
+            <div class="team-body reveal">
+                <p>ROSSCORP is run by a small team of experienced infrastructure engineers, with expertise in managing
+                    distributed systems and optimizing asset utilization.</p>
+                <p>ROSSCORP is not accepting applications at this time.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-motto">SOFTWARE FOR WHAT COMES NEXT</div>
+            <div class="footer-copy">
+                2026 ROSSCORP
+            </div>
+        </div>
+    </footer>
+
+    <!-- ═══ SCRIPTS ═══ -->
+    <script>
+        /* ── Scroll reveal ── */
+        (function initReveal() {
+            const els = document.querySelectorAll('.reveal');
+            if (!('IntersectionObserver' in window)) {
+                els.forEach(function (el) { el.classList.add('visible'); });
+                return;
+            }
+
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+            els.forEach(function (el) { observer.observe(el); });
+        })();
+    </script>
+</body>
+
+</html>

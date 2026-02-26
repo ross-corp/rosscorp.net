@@ -1,0 +1,13 @@
+version: "3"
+
+vars:
+  PORT: '{{.PORT | default "4000"}}'
+
+tasks:
+  serve:
+    desc: Serve the site locally
+    cmds:
+      - echo "ROSSCORP — LOCAL INTERFACE"
+      - echo "Serving at http://localhost:{{.PORT}}"
+      - python3 -m http.server {{.PORT}}
+    silent: true
