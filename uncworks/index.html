@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNCWORKS — ROSSCORP</title>
+    <meta name="description" content="UNCWORKS — Specification-driven autonomous development platform by ROSSCORP">
+    <meta property="og:title" content="UNCWORKS — ROSSCORP">
+    <meta property="og:description"
+        content="Specification-driven autonomous development. Specs first, code second, verification always.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rosscorp.net/uncworks">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect fill=%27%230a0a0a%27 width=%27100%27 height=%27100%27/%3E%3Ctext fill=%27%23c4870d%27 font-family=%27monospace%27 font-size=%2726%27 font-weight=%27bold%27 x=%2750%27 y=%2744%27 text-anchor=%27middle%27%3EROSS%3C/text%3E%3Ctext fill=%27%23c4870d%27 font-family=%27monospace%27 font-size=%2726%27 font-weight=%27bold%27 x=%2750%27 y=%2770%27 text-anchor=%27middle%27%3ECORP%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #050505;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #0e0e0e;
+            --bg-card: #0c0c0c;
+            --bg-card-hover: #111111;
+            --text-primary: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --text-dim: #777777;
+            --amber: #c4870d;
+            --amber-glow: #d4a017;
+            --amber-dim: #6b4f0a;
+            --amber-faint: rgba(196, 135, 13, 0.08);
+            --green: #2d8a4e;
+            --green-text: #4aba6a;
+            --yellow: #8a7a2d;
+            --yellow-text: #c4b040;
+            --red: #8a2d2d;
+            --red-text: #c04040;
+            --border: #1a1a1a;
+            --border-hover: #2a2a2a;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+            --container: 1080px;
+            --nav-height: 56px;
+        }
+
+        /* ══════════════════════════════════════════════════
+           RESET & BASE
+           ══════════════════════════════════════════════════ */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: calc(var(--nav-height) + 1rem);
+        }
+
+        body {
+            font-family: var(--font-mono);
+            background:
+                radial-gradient(ellipse at 15% 50%, rgba(196, 135, 13, 0.025) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 20%, rgba(196, 135, 13, 0.015) 0%, transparent 40%),
+                var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-size: 18px;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--amber);
+            color: var(--bg-deep);
+        }
+
+        a {
+            color: var(--amber);
+            text-decoration: none;
+            transition: color 0.2s, text-shadow 0.2s;
+        }
+
+        a:hover {
+            color: var(--amber-glow);
+            text-shadow: 0 0 8px rgba(212, 160, 23, 0.3);
+        }
+
+        /* ══════════════════════════════════════════════════
+           ATMOSPHERIC OVERLAYS
+           ══════════════════════════════════════════════════ */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.06) 2px,
+                    rgba(0, 0, 0, 0.06) 4px);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center,
+                    transparent 50%,
+                    rgba(0, 0, 0, 0.5) 100%);
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ══════════════════════════════════════════════════
+           NAVIGATION
+           ══════════════════════════════════════════════════ */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .nav-logo {
+            display: block;
+            color: var(--text-primary);
+            font-size: 14px;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            font-size: 14px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--amber);
+            text-shadow: none;
+        }
+
+        /* ══════════════════════════════════════════════════
+           LAYOUT
+           ══════════════════════════════════════════════════ */
+        .container {
+            max-width: var(--container);
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        section {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ══════════════════════════════════════════════════
+           SECTION HEADERS
+           ══════════════════════════════════════════════════ */
+        .section-header {
+            margin-bottom: 3rem;
+        }
+
+        .section-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 0.2em;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: normal;
+            letter-spacing: 0.25em;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, var(--border), transparent);
+        }
+
+        .section-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* ══════════════════════════════════════════════════
+           DIVIDER
+           ══════════════════════════════════════════════════ */
+        .divider {
+            text-align: center;
+            padding: 1rem 0;
+            color: var(--text-dim);
+            font-size: 12px;
+            letter-spacing: 0.5em;
+            overflow: hidden;
+        }
+
+        .divider-line {
+            display: block;
+            color: var(--border);
+            letter-spacing: 0.1em;
+            font-size: 10px;
+            overflow: hidden;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        /* ══════════════════════════════════════════════════
+           HERO
+           ══════════════════════════════════════════════════ */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding-top: var(--nav-height);
+            position: relative;
+        }
+
+        .hero-frame {
+            position: relative;
+            padding: 3rem 4rem;
+        }
+
+        .hero-frame::before,
+        .hero-frame::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-color: var(--amber-dim);
+            border-style: solid;
+        }
+
+        .hero-frame::before {
+            top: 0;
+            left: 0;
+            border-width: 1px 0 0 1px;
+        }
+
+        .hero-frame::after {
+            bottom: 0;
+            right: 0;
+            border-width: 0 1px 1px 0;
+        }
+
+        .hero-corner-tr,
+        .hero-corner-bl {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-color: var(--amber-dim);
+            border-style: solid;
+        }
+
+        .hero-corner-tr {
+            top: 0;
+            right: 0;
+            border-width: 1px 1px 0 0;
+        }
+
+        .hero-corner-bl {
+            bottom: 0;
+            left: 0;
+            border-width: 0 0 1px 1px;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 8vw, 5.5rem);
+            font-weight: normal;
+            letter-spacing: 0.3em;
+            padding-left: 0.3em;
+            color: var(--text-primary);
+            line-height: 1.1;
+            animation: textReveal 0.8s ease-out;
+        }
+
+        .hero-tagline {
+            font-size: clamp(14px, 2vw, 18px);
+            color: var(--text-secondary);
+            letter-spacing: 0.15em;
+            margin-top: 1.5rem;
+            animation: textReveal 0.8s ease-out 0.3s both;
+        }
+
+        .hero-scroll {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-dim);
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            animation: bob 2.5s ease-in-out infinite, textReveal 0.8s ease-out 0.8s both;
+        }
+
+        .hero-scroll-arrow {
+            font-size: 16px;
+        }
+
+        /* ══════════════════════════════════════════════════
+           OVERVIEW
+           ══════════════════════════════════════════════════ */
+        .overview {
+            padding: 6rem 0;
+        }
+
+        .overview-body {
+            max-width: 780px;
+            font-size: 18px;
+            color: var(--text-secondary);
+            line-height: 1.9;
+        }
+
+        .overview-body p+p {
+            margin-top: 1.5rem;
+        }
+
+        /* ══════════════════════════════════════════════════
+           SCREENSHOTS
+           ══════════════════════════════════════════════════ */
+        .screenshot {
+            padding: 4rem 0;
+        }
+
+        .screenshot-frame {
+            border: 1px solid var(--border);
+            border-top: 2px solid var(--amber-dim);
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .screenshot-frame:hover {
+            border-color: var(--border-hover);
+            border-top-color: var(--amber);
+            box-shadow: 0 0 40px rgba(196, 135, 13, 0.06);
+        }
+
+        .screenshot-frame img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .screenshot-caption {
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-top: 0.75rem;
+        }
+
+        /* ══════════════════════════════════════════════════
+           PIPELINE
+           ══════════════════════════════════════════════════ */
+        .pipeline {
+            padding: 6rem 0;
+        }
+
+        .pipeline-steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        .pipeline-step {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-top: 2px solid var(--amber-dim);
+            padding: 1.5rem;
+            transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+        }
+
+        .pipeline-step:hover {
+            border-color: var(--border-hover);
+            border-top-color: var(--amber);
+            background: var(--bg-card-hover);
+            box-shadow: 0 0 30px rgba(196, 135, 13, 0.04);
+        }
+
+        .step-number {
+            font-size: 11px;
+            color: var(--amber);
+            letter-spacing: 0.2em;
+            margin-bottom: 0.75rem;
+        }
+
+        .step-title {
+            font-size: 1.2rem;
+            letter-spacing: 0.15em;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .step-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* ══════════════════════════════════════════════════
+           PILLARS
+           ══════════════════════════════════════════════════ */
+        .pillars {
+            padding: 6rem 0;
+        }
+
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .pillar-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-top: 2px solid var(--amber-dim);
+            padding: 2rem 1.5rem;
+            transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+        }
+
+        .pillar-card:hover {
+            border-color: var(--border-hover);
+            border-top-color: var(--amber);
+            background: var(--bg-card-hover);
+            box-shadow: 0 0 30px rgba(196, 135, 13, 0.04);
+        }
+
+        .pillar-question {
+            font-size: 1.1rem;
+            letter-spacing: 0.1em;
+            color: var(--amber);
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .pillar-answer {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* ══════════════════════════════════════════════════
+           FEATURES
+           ══════════════════════════════════════════════════ */
+        .features {
+            padding: 6rem 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            transition: border-color 0.3s, background 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+        }
+
+        .feature-name {
+            font-size: 15px;
+            letter-spacing: 0.15em;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green-text);
+            box-shadow: 0 0 6px rgba(74, 186, 106, 0.4);
+            flex-shrink: 0;
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* ══════════════════════════════════════════════════
+           VERIFICATION
+           ══════════════════════════════════════════════════ */
+        .verification {
+            padding: 6rem 0;
+        }
+
+        .gate-list {
+            list-style: none;
+            max-width: 720px;
+        }
+
+        .gate-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .gate-item:last-child {
+            border-bottom: none;
+        }
+
+        .gate-num {
+            font-size: 11px;
+            color: var(--amber);
+            letter-spacing: 0.15em;
+            white-space: nowrap;
+            padding-top: 0.15rem;
+        }
+
+        .gate-content {
+            flex: 1;
+        }
+
+        .gate-title {
+            font-size: 16px;
+            color: var(--text-primary);
+            letter-spacing: 0.1em;
+            margin-bottom: 0.25rem;
+        }
+
+        .gate-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ══════════════════════════════════════════════════
+           USE CASES
+           ══════════════════════════════════════════════════ */
+        .use-cases {
+            padding: 6rem 0;
+        }
+
+        .use-case-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .use-case {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 1.25rem 1.5rem;
+            transition: border-color 0.3s, background 0.3s;
+        }
+
+        .use-case:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+        }
+
+        .use-case-name {
+            font-size: 15px;
+            letter-spacing: 0.1em;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+        }
+
+        .use-case-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ══════════════════════════════════════════════════
+           WAITLIST
+           ══════════════════════════════════════════════════ */
+        .waitlist {
+            padding: 6rem 0;
+        }
+
+        .waitlist-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-top: 2px solid var(--amber-dim);
+            padding: 2.5rem;
+            max-width: 600px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .waitlist-block:hover {
+            border-color: var(--border-hover);
+            border-top-color: var(--amber);
+            box-shadow: 0 0 30px rgba(196, 135, 13, 0.04);
+        }
+
+        .waitlist-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .waitlist-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .waitlist-form {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .waitlist-input {
+            flex: 1;
+            background: var(--bg-deep);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            padding: 0.65rem 1rem;
+            letter-spacing: 0.05em;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .waitlist-input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .waitlist-input:focus {
+            border-color: var(--amber-dim);
+        }
+
+        .waitlist-btn {
+            background: var(--amber-dim);
+            border: 1px solid var(--amber);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 0.65rem 1.5rem;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            white-space: nowrap;
+        }
+
+        .waitlist-btn:hover {
+            background: var(--amber);
+            color: var(--bg-deep);
+            box-shadow: 0 0 16px rgba(196, 135, 13, 0.3);
+        }
+
+        .waitlist-note {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+            margin-top: 0.75rem;
+        }
+
+        @media (max-width: 640px) {
+            .waitlist-form {
+                flex-direction: column;
+            }
+        }
+
+        /* ══════════════════════════════════════════════════
+           FOOTER
+           ══════════════════════════════════════════════════ */
+        footer {
+            position: relative;
+            z-index: 2;
+            border-top: 1px solid var(--border);
+            padding: 3rem 0;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: var(--container);
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .footer-motto {
+            font-size: 15px;
+            color: var(--text-secondary);
+            letter-spacing: 0.3em;
+            margin-bottom: 1rem;
+        }
+
+        .footer-copy {
+            font-size: 14px;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+        }
+
+        .footer-copy a {
+            color: var(--text-dim);
+        }
+
+        .footer-copy a:hover {
+            color: var(--amber-dim);
+        }
+
+        /* ══════════════════════════════════════════════════
+           ANIMATIONS
+           ══════════════════════════════════════════════════ */
+        @keyframes textReveal {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bob {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(6px);
+            }
+        }
+
+        @keyframes flicker {
+
+            0%,
+            95%,
+            100% {
+                opacity: 1;
+            }
+
+            96% {
+                opacity: 0.92;
+            }
+
+            97% {
+                opacity: 0.97;
+            }
+
+            98% {
+                opacity: 0.94;
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-stagger>.reveal:nth-child(1) {
+            transition-delay: 0s;
+        }
+
+        .reveal-stagger>.reveal:nth-child(2) {
+            transition-delay: 0.08s;
+        }
+
+        .reveal-stagger>.reveal:nth-child(3) {
+            transition-delay: 0.16s;
+        }
+
+        .reveal-stagger>.reveal:nth-child(4) {
+            transition-delay: 0.24s;
+        }
+
+        .reveal-stagger>.reveal:nth-child(5) {
+            transition-delay: 0.32s;
+        }
+
+        .reveal-stagger>.reveal:nth-child(6) {
+            transition-delay: 0.40s;
+        }
+
+        .reveal-stagger>.reveal:nth-child(7) {
+            transition-delay: 0.48s;
+        }
+
+        .reveal-stagger>.reveal:nth-child(8) {
+            transition-delay: 0.56s;
+        }
+
+        body {
+            animation: flicker 8s ease-in-out infinite;
+        }
+
+        /* ══════════════════════════════════════════════════
+           RESPONSIVE
+           ══════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .pipeline-steps {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pillars-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .use-case-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            :root {
+                --nav-height: 48px;
+            }
+
+            body {
+                font-size: 13px;
+            }
+
+            nav {
+                padding: 0 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .hero-frame {
+                padding: 2rem 1.5rem;
+            }
+
+            .hero-frame::before,
+            .hero-frame::after,
+            .hero-corner-tr,
+            .hero-corner-bl {
+                width: 20px;
+                height: 20px;
+            }
+
+            .hero-scroll {
+                display: none;
+            }
+
+            .pipeline-steps {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 1rem;
+            }
+
+            .container {
+                padding: 0 1.25rem;
+            }
+
+            .overview,
+            .pipeline,
+            .pillars,
+            .features,
+            .verification,
+            .use-cases,
+            .status-section {
+                padding: 4rem 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none;
+            }
+
+            html {
+                scroll-behavior: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="grid-overlay" aria-hidden="true"></div>
+
+    <nav>
+        <a href="/" class="nav-logo">ROSS<br>CORP</a>
+        <ul class="nav-links">
+            <li><a href="#pipeline">PIPELINE</a></li>
+            <li><a href="#features">FEATURES</a></li>
+            <li><a href="#use-cases">USE CASES</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-frame">
+            <div class="hero-corner-tr"></div>
+            <div class="hero-corner-bl"></div>
+            <h1 class="hero-title">UNCWORKS</h1>
+            <p class="hero-tagline">NEPHEW ORCHESTRATION</p>
+        </div>
+        <a href="#overview" class="hero-scroll" aria-label="Scroll to content">
+            <span class="hero-scroll-arrow">&#9663;</span>
+        </a>
+    </section>
+
+    <!-- ═══ DIVIDER ═══ -->
+    <div class="divider container" aria-hidden="true">
+        <span class="divider-line">════════════════════════════════════════════════════════════════════════════</span>
+    </div>
+
+    <!-- ═══ OVERVIEW ═══ -->
+    <section class="overview" id="overview">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2 class="section-title">THE NEPH LOOP</h2>
+                <p class="section-subtitle">The proper abstraction for worker orchestration</p>
+            </div>
+            <div class="overview-body reveal">
+                <p>Everyone wants to know, what's the proper abstraction for agentic orchestration? A sheepdog steering
+                    a flock? A bunch of good interns? A time travelling hyperintelligence bringing about its own
+                    creation?
+                    ROSSCORP has the answer: unchestration.</p>
+                <p>What is an unc? Seasoned. Old school, mostly in a cool way. Knows how to take care of
+                    business. Might have a bum knee but still knows how to dance.</p>
+                <p>What is a neph? Enthusiastic. Naive. Outnumbering local uncs ten to one. With the right guidance,
+                    should be able to make something worth holding on to.</p>
+                <p>This observation is what birthed UNCWORKS — the ultimate toolchain for uncs (software engineers) to
+                    manage swarms of nephews (AI coding agents). Write a spec, dispatch the nephews.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ SCREENSHOT: PROJECTS ═══ -->
+    <section class="screenshot">
+        <div class="container">
+            <div class="screenshot-frame reveal">
+                <img src="screenshots/projects.webp"
+                    alt="UNCWORKS run list dashboard showing project runs with status indicators" loading="lazy">
+            </div>
+            <p class="screenshot-caption reveal">Run list — multiple prompts, multiple projects, all trackable</p>
+        </div>
+    </section>
+
+    <!-- ═══ DIVIDER ═══ -->
+    <div class="divider container" aria-hidden="true">
+        <span class="divider-line">════════════════════════════════════════════════════════════════════════════</span>
+    </div>
+
+    <!-- ═══ PIPELINE ═══ -->
+    <section class="pipeline" id="pipeline">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2 class="section-title">PIPELINE</h2>
+                <p class="section-subtitle">From spec to pull request in four stages</p>
+            </div>
+            <div class="pipeline-steps reveal-stagger">
+                <div class="pipeline-step reveal">
+                    <div class="step-number">STAGE 01</div>
+                    <h3 class="step-title">SPECIFY</h3>
+                    <p class="step-desc">Define what needs to change with structured specs — requirements, acceptance
+                        criteria, and design constraints. Or provide a prompt and let UNCWORKS generate the spec.</p>
+                </div>
+                <div class="pipeline-step reveal">
+                    <div class="step-number">STAGE 02</div>
+                    <h3 class="step-title">EXECUTE</h3>
+                    <p class="step-desc">Agents implement changes in isolated Kubernetes pods with full access to your
+                        repos, toolchains, and dependencies. Each run gets its own sandboxed workspace.</p>
+                </div>
+                <div class="pipeline-step reveal">
+                    <div class="step-number">STAGE 03</div>
+                    <h3 class="step-title">VERIFY</h3>
+                    <p class="step-desc">Five automated gates check the work against your specs, run your tests, and
+                        evaluate output with an LLM judge. Failed runs retry with failure context injected.</p>
+                </div>
+                <div class="pipeline-step reveal">
+                    <div class="step-number">STAGE 04</div>
+                    <h3 class="step-title">DELIVER</h3>
+                    <p class="step-desc">Approved changes are pushed to a feature branch with a PR opened and ready for
+                        human review. Standard code review process, standard git workflow.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ SCREENSHOT: CHAT ═══ -->
+    <section class="screenshot">
+        <div class="container">
+            <div class="screenshot-frame reveal">
+                <img src="screenshots/chat.webp"
+                    alt="UNCWORKS agent activity log showing an implement agent working through tasks" loading="lazy">
+            </div>
+            <p class="screenshot-caption reveal">Agent activity — interact with your nephews or let them work without
+                you</p>
+        </div>
+    </section>
+
+    <!-- ═══ DIVIDER ═══ -->
+    <div class="divider container" aria-hidden="true">
+        <span class="divider-line">════════════════════════════════════════════════════════════════════════════</span>
+    </div>
+
+    <!-- ═══ PILLARS ═══ -->
+    <section class="pillars" id="pillars">
+        <div class="container">
+            <div class="pillars-grid reveal-stagger">
+                <div class="pillar-card reveal">
+                    <h3 class="pillar-question">COMPUTE FRIENDLY</h3>
+                    <p class="pillar-answer">Stop buying Mac Studios to hit APIs. Schedule nephs on your existing
+                        Kubernetes nodes. UNCWORKS deploys via Helm and runs wherever you already run production
+                        workloads.</p>
+                </div>
+                <div class="pillar-card reveal">
+                    <h3 class="pillar-question">CONTEXTUAL TRACING</h3>
+                    <p class="pillar-answer">Misconfigured MCP servers blowing up your performance? Context traces help
+                        you find token leaks. Full trace timelines, per-tool-call diffs, and verification panels with
+                        detailed pass/fail reasoning.</p>
+                </div>
+                <div class="pillar-card reveal">
+                    <h3 class="pillar-question">MANAGE FROM ANYWHERE</h3>
+                    <p class="pillar-answer">Use the UNC manager in a browser, a CLI, or the desktop app. </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ SCREENSHOT: TRACES ═══ -->
+    <section class="screenshot">
+        <div class="container">
+            <div class="screenshot-frame reveal">
+                <img src="screenshots/traces.webp"
+                    alt="UNCWORKS trace timeline showing per-tool-call spans with token costs and diffs" loading="lazy">
+            </div>
+            <p class="screenshot-caption reveal">Trace timeline — every tool call, every token, every diff</p>
+        </div>
+    </section>
+
+    <!-- ═══ DIVIDER ═══ -->
+    <div class="divider container" aria-hidden="true">
+        <span class="divider-line">════════════════════════════════════════════════════════════════════════════</span>
+    </div>
+
+    <!-- ═══ FEATURES ═══ -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2 class="section-title">CAPABILITIES</h2>
+                <p class="section-subtitle">What the platform provides</p>
+            </div>
+            <div class="features-grid reveal-stagger">
+                <div class="feature-card reveal">
+                    <h3 class="feature-name"><span class="feature-dot"></span> MULTI-AGENT ORCHESTRATION</h3>
+                    <p class="feature-desc">Manage agents plan and coordinate. Implement agents write code. Role-based
+                        restrictions keep each agent in its lane. Up to 7 parallel subtasks per run.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 class="feature-name"><span class="feature-dot"></span> SANDBOXED WORKSPACES</h3>
+                    <p class="feature-desc">Each run gets its own Kubernetes pod with isolated filesystem, git
+                        worktrees, and Devbox-managed dependencies. No cross-contamination between runs.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 class="feature-name"><span class="feature-dot"></span> HUMAN-IN-THE-LOOP</h3>
+                    <p class="feature-desc">When an agent hits ambiguity, it pauses and asks through the dashboard. You
+                        answer in real time and the agent continues. You stay in control without babysitting.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 class="feature-name"><span class="feature-dot"></span> CI AUTO-FIX</h3>
+                    <p class="feature-desc">CI failures on agent-created branches are detected via webhooks. UNCWORKS
+                        extracts error context and creates fix runs automatically. Circuit breaker after 3 attempts.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 class="feature-name"><span class="feature-dot"></span> BRING YOUR OWN LLM</h3>
+                    <p class="feature-desc">Run local models via Ollama, route to cloud providers like OpenRouter, or
+                        plug in any OpenAI-compatible endpoint. Pick different models per pipeline stage — cheap for
+                        planning, capable for implementation. Budget caps in USD with fallback chains.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 class="feature-name"><span class="feature-dot"></span> KNOWLEDGE BASE</h3>
+                    <p class="feature-desc">Past run artifacts are indexed and surfaced to future agents via vector
+                        similarity search. Your agents get smarter over time without manual curation.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 class="feature-name"><span class="feature-dot"></span> REAL-TIME OBSERVABILITY</h3>
+                    <p class="feature-desc">Web dashboard, terminal UI, trace timeline with per-tool-call diffs, and
+                        verification panels with detailed pass/fail reasoning. Full visibility into every decision.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <h3 class="feature-name"><span class="feature-dot"></span> GIT-NATIVE WORKFLOW</h3>
+                    <p class="feature-desc">Feature branches, automatic PRs, multi-repo support, and webhook triggers.
+                        The output is always a standard PR ready for your normal review process.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ SCREENSHOT: FILESYSTEM ═══ -->
+    <section class="screenshot">
+        <div class="container">
+            <div class="screenshot-frame reveal">
+                <img src="screenshots/filesystem.webp"
+                    alt="UNCWORKS workspace file browser showing spec artifacts and implementation details"
+                    loading="lazy">
+            </div>
+            <p class="screenshot-caption reveal">Workspace — specs, designs, and generated code in one view</p>
+        </div>
+    </section>
+
+    <!-- ═══ DIVIDER ═══ -->
+    <div class="divider container" aria-hidden="true">
+        <span class="divider-line">════════════════════════════════════════════════════════════════════════════</span>
+    </div>
+
+    <!-- ═══ VERIFICATION ═══ -->
+    <section class="verification" id="verification">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2 class="section-title">VERIFICATION</h2>
+                <p class="section-subtitle">Five automated gates before any PR is opened</p>
+            </div>
+            <ul class="gate-list reveal">
+                <li class="gate-item">
+                    <span class="gate-num">GATE 01</span>
+                    <div class="gate-content">
+                        <h3 class="gate-title">TASK COMPLETION</h3>
+                        <p class="gate-desc">Did the agent address every decomposed subtask in the spec?</p>
+                    </div>
+                </li>
+                <li class="gate-item">
+                    <span class="gate-num">GATE 02</span>
+                    <div class="gate-content">
+                        <h3 class="gate-title">STRUCTURAL VALIDATION</h3>
+                        <p class="gate-desc">Do the spec artifacts conform to the expected schema?</p>
+                    </div>
+                </li>
+                <li class="gate-item">
+                    <span class="gate-num">GATE 03</span>
+                    <div class="gate-content">
+                        <h3 class="gate-title">FILE EXISTENCE</h3>
+                        <p class="gate-desc">Are all files referenced in acceptance criteria present in the workspace?
+                        </p>
+                    </div>
+                </li>
+                <li class="gate-item">
+                    <span class="gate-num">GATE 04</span>
+                    <div class="gate-content">
+                        <h3 class="gate-title">TEST EXECUTION</h3>
+                        <p class="gate-desc">Do the test commands extracted from acceptance criteria pass?</p>
+                    </div>
+                </li>
+                <li class="gate-item">
+                    <span class="gate-num">GATE 05</span>
+                    <div class="gate-content">
+                        <h3 class="gate-title">LLM EVALUATION</h3>
+                        <p class="gate-desc">Does an independent model judge confirm the implementation meets every
+                            acceptance criterion?</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ═══ SCREENSHOT: SHELL ═══ -->
+    <section class="screenshot">
+        <div class="container">
+            <div class="screenshot-frame reveal">
+                <img src="screenshots/shell.webp"
+                    alt="UNCWORKS debug shell showing direct SSH access into an agent pod workspace" loading="lazy">
+            </div>
+            <p class="screenshot-caption reveal">Debug shell — drop into any nephew's workspace</p>
+        </div>
+    </section>
+
+    <!-- ═══ DIVIDER ═══ -->
+    <div class="divider container" aria-hidden="true">
+        <span class="divider-line">════════════════════════════════════════════════════════════════════════════</span>
+    </div>
+
+    <!-- ═══ USE CASES ═══ -->
+    <section class="use-cases" id="use-cases">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2 class="section-title">USE CASES</h2>
+                <p class="section-subtitle">What teams build with UNCWORKS</p>
+            </div>
+            <div class="use-case-list reveal-stagger">
+                <div class="use-case reveal">
+                    <h3 class="use-case-name">CODEBASE MIGRATIONS</h3>
+                    <p class="use-case-desc">Framework upgrades, ORM swaps, API pattern adoption across dozens of files.
+                        Define rules in a spec, let agents handle the transformation.</p>
+                </div>
+                <div class="use-case reveal">
+                    <h3 class="use-case-name">CROSS-REPO REFACTORS</h3>
+                    <p class="use-case-desc">Rename shared types, update API contracts across producers and consumers,
+                        restructure module boundaries in coordinated multi-repo changes.</p>
+                </div>
+                <div class="use-case reveal">
+                    <h3 class="use-case-name">BUG FIXES FROM ISSUES</h3>
+                    <p class="use-case-desc">Point a run at a bug report. The agent analyzes the codebase, identifies
+                        root cause, writes the fix, and adds a regression test.</p>
+                </div>
+                <div class="use-case reveal">
+                    <h3 class="use-case-name">BOILERPLATE GENERATION</h3>
+                    <p class="use-case-desc">Service scaffolding, CRUD endpoints, data models, test harnesses. Agents
+                        read your conventions and generate code that fits in.</p>
+                </div>
+                <div class="use-case reveal">
+                    <h3 class="use-case-name">SPEC-DRIVEN FEATURES</h3>
+                    <p class="use-case-desc">Full pipeline for larger features. Detailed requirements, designs, and
+                        acceptance criteria reviewed before implementation begins.</p>
+                </div>
+                <div class="use-case reveal">
+                    <h3 class="use-case-name">COMPLIANCE CHANGES</h3>
+                    <p class="use-case-desc">New logging requirements, updated auth patterns, dependency constraints.
+                        Encode rules in a spec, propagate changes consistently.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ DIVIDER ═══ -->
+    <div class="divider container" aria-hidden="true">
+        <span class="divider-line">════════════════════════════════════════════════════════════════════════════</span>
+    </div>
+
+    <!-- ═══ WAITLIST ═══ -->
+    <section class="waitlist" id="waitlist">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2 class="section-title">JOIN THE WAITLIST</h2>
+            </div>
+            <div class="waitlist-block reveal">
+                <div class="waitlist-status">
+                    <span class="flag-dot yellow"></span>
+                    <span class="flag-text yellow" style="font-size: 13px; letter-spacing: 0.1em;">IN DEVELOPMENT</span>
+                </div>
+                <p class="waitlist-desc">UNCWORKS is under active development at ROSSCORP. Kubernetes-native,
+                    self-hosted, runs in your cluster. Sign up to get notified when it's ready.</p>
+                <!-- ═══ FORMSPREE: Replace xwvwoddg with your Formspree form ID ═══ -->
+                <!-- Create a free form at https://formspree.io and paste the ID below -->
+                <form class="waitlist-form" action="https://formspree.io/f/xwvwoddg" method="POST">
+                    <input type="email" name="email" class="waitlist-input" placeholder="YOUR@EMAIL.COM" required
+                        aria-label="Email address">
+                    <button type="submit" class="waitlist-btn">ENLIST</button>
+                </form>
+                <p class="waitlist-note">No spam. One email when we ship.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-motto">SOFTWARE FOR WHAT COMES NEXT</div>
+            <div class="footer-copy">
+                2026 <a href="/">ROSSCORP</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ═══ SCRIPTS ═══ -->
+    <script>
+        (function initReveal() {
+            var els = document.querySelectorAll('.reveal');
+            if (!('IntersectionObserver' in window)) {
+                els.forEach(function (el) { el.classList.add('visible'); });
+                return;
+            }
+
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+            els.forEach(function (el) { observer.observe(el); });
+        })();
+    </script>
+</body>
+
+</html>
